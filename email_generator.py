@@ -16,8 +16,11 @@ def generate_email(bullet_points, tone):
     )
     return message.content[0].text
 
-bullet_points = input("Enter your bullet points: ")
-tone = input("Enter tone (formal/friendly/urgent): ")
-result = generate_email(bullet_points, tone)
-print("\nGenerated Email:")
-print(result)
+while True:
+    bullet_points = input("\nEnter your bullet points (or 'quit' to exit): ")
+    if bullet_points.lower() == "quit":
+        break
+    tone = input("Enter tone (formal/friendly/urgent): ")
+    result = generate_email(bullet_points, tone)
+    print("\nGenerated Email:")
+    print(result)
