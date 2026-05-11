@@ -32,7 +32,7 @@
             });
             
             const data = await response.json();
-            document.getElementById("result").innerText = data.email;
+            document.getElementById("result").innerHTML = data.email.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
         }
     </script>
 </body>
