@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Email Generator</title>
+</head>
+<body>
+    <h1>Email Generator</h1>
+    
+    <textarea id="bullet_points" placeholder="Enter bullet points..." rows="5" cols="50"></textarea>
+    <br>
+    <select id="tone">
+        <option value="formal">Formal</option>
+        <option value="friendly">Friendly</option>
+        <option value="urgent">Urgent</option>
+    </select>
+    <br><br>
+    <button onclick="generateEmail()">Generate Email</button>
+    
+    <h2>Generated Email:</h2>
+    <p id="result"></p>
+
+    <script>
+        async function generateEmail() {
+            const bullet_points = document.getElementById("bullet_points").value;
+            const tone = document.getElementById("tone").value;
+            
+            const response = await fetch("/generate", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({bullet_points, tone})
+            });
+            
+            const data = await response.json();
+            document.getElementById("result").innerText = data.email;
+        }
+    </script>
+</body>
+</html>
