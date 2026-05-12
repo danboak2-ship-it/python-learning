@@ -1,39 +1,599 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Email Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MailCraft — AI Email Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --border: rgba(255,255,255,0.07);
+            --accent: #e8ff47;
+            --accent-dim: rgba(232, 255, 71, 0.12);
+            --text: #f0f0f5;
+            --text-muted: #6b6b80;
+            --text-dim: #9999aa;
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Background grain */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* Glow orb */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 28px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--accent);
+        }
+
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 100px;
+        }
+
+        /* Main layout */
+        main {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 60px 40px;
+            align-items: start;
+        }
+
+        /* Left panel */
+        .left-panel {
+            padding-right: 60px;
+        }
+
+        .eyebrow {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .eyebrow::before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        h1 span {
+            color: var(--accent);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            font-weight: 300;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 48px;
+            max-width: 380px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        textarea, select {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 300;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        textarea {
+            padding: 18px 20px;
+            resize: vertical;
+            min-height: 140px;
+            line-height: 1.6;
+        }
+
+        select {
+            padding: 16px 20px;
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+        }
+
+        textarea:focus, select:focus {
+            border-color: rgba(232, 255, 71, 0.4);
+            box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.06);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        select option {
+            background: var(--surface2);
+        }
+
+        /* Tone pills */
+        .tone-pills {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 10px 20px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .pill:hover {
+            border-color: rgba(232,255,71,0.3);
+            color: var(--text);
+        }
+
+        .pill.active {
+            background: var(--accent-dim);
+            border-color: rgba(232,255,71,0.5);
+            color: var(--accent);
+        }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 18px 32px;
+            background: var(--accent);
+            color: #0a0a0f;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(232,255,71,0.25);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .btn svg {
+            transition: transform 0.2s;
+        }
+
+        .btn:hover svg {
+            transform: translateX(3px);
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #0a0a0f;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .btn.loading .spinner { display: block; }
+        .btn.loading .btn-text { display: none; }
+        .btn.loading .btn-icon { display: none; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Right panel — output */
+        .right-panel {
+            padding-left: 60px;
+            border-left: 1px solid var(--border);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .output-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .copy-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .copy-btn:hover {
+            color: var(--text);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .copy-btn.copied {
+            color: var(--accent);
+            border-color: rgba(232,255,71,0.3);
+        }
+
+        .output-box {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .output-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 300;
+            text-align: center;
+            padding: 40px;
+            transition: opacity 0.3s;
+        }
+
+        .output-empty svg {
+            opacity: 0.3;
+        }
+
+        .output-empty.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .output-text {
+            font-size: 0.92rem;
+            line-height: 1.8;
+            color: var(--text-dim);
+            font-weight: 300;
+            white-space: pre-wrap;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .output-text.visible {
+            opacity: 1;
+        }
+
+        .output-text strong {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            padding: 24px 40px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-text {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        .footer-text span {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header { padding: 20px 24px; }
+            main {
+                grid-template-columns: 1fr;
+                padding: 40px 24px;
+            }
+            .left-panel { padding-right: 0; margin-bottom: 48px; }
+            .right-panel { padding-left: 0; border-left: none; border-top: 1px solid var(--border); padding-top: 48px; }
+            footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+        }
+
+        /* Animate in */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .left-panel { animation: fadeUp 0.5s ease both; }
+        .right-panel { animation: fadeUp 0.5s ease 0.15s both; }
+    </style>
 </head>
 <body>
-    <h1>Email Generator</h1>
-    
-    <textarea id="bullet_points" placeholder="Enter bullet points..." rows="5" cols="50"></textarea>
-    <br>
-    <select id="tone">
-        <option value="formal">Formal</option>
-        <option value="friendly">Friendly</option>
-        <option value="urgent">Urgent</option>
-    </select>
-    <br><br>
-    <button onclick="generateEmail()">Generate Email</button>
-    
-    <h2>Generated Email:</h2>
-    <p id="result"></p>
 
-    <script>
-        async function generateEmail() {
-            const bullet_points = document.getElementById("bullet_points").value;
-            const tone = document.getElementById("tone").value;
-            
-            const response = await fetch("/generate", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({bullet_points, tone})
-            });
-            
-            const data = await response.json();
-            document.getElementById("result").innerHTML = data.email.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+<header>
+    <div class="logo">
+        <div class="logo-dot"></div>
+        MailCraft
+    </div>
+    <div class="badge">AI Powered</div>
+</header>
+
+<main>
+    <div class="left-panel">
+        <div class="eyebrow">Email Generator</div>
+        <h1>Write better emails,<br><span>instantly.</span></h1>
+        <p class="subtitle">Drop in your bullet points, pick a tone, and get a polished professional email in seconds.</p>
+
+        <div class="form-group">
+            <label>Your bullet points</label>
+            <textarea id="bullet_points" placeholder="e.g.&#10;- Meeting tomorrow at 3pm&#10;- Bring your laptop&#10;- Room 204, second floor"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Tone</label>
+            <div class="tone-pills">
+                <div class="pill active" data-tone="formal">Formal</div>
+                <div class="pill" data-tone="friendly">Friendly</div>
+                <div class="pill" data-tone="urgent">Urgent</div>
+                <div class="pill" data-tone="concise">Concise</div>
+                <div class="pill" data-tone="persuasive">Persuasive</div>
+            </div>
+        </div>
+
+        <button class="btn" id="generateBtn" onclick="generateEmail()">
+            <span class="btn-text">Generate Email</span>
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
+            </svg>
+            <div class="spinner"></div>
+        </button>
+    </div>
+
+    <div class="right-panel">
+        <div class="output-header">
+            <div class="output-label">Generated Email</div>
+            <button class="copy-btn" id="copyBtn" onclick="copyEmail()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                </svg>
+                <span id="copyText">Copy</span>
+            </button>
+        </div>
+
+        <div class="output-box">
+            <div class="output-empty" id="emptyState">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                Your email will appear here
+            </div>
+            <div class="output-text" id="result"></div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <div class="footer-text">Built with <span>Claude AI</span> — Anthropic</div>
+    <div class="footer-text">MailCraft © 2026</div>
+</footer>
+
+<script>
+    // Tone pill selection
+    let selectedTone = 'formal';
+
+    document.querySelectorAll('.pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            selectedTone = pill.dataset.tone;
+        });
+    });
+
+    async function generateEmail() {
+        const bullet_points = document.getElementById('bullet_points').value.trim();
+        if (!bullet_points) {
+            document.getElementById('bullet_points').focus();
+            return;
         }
-    </script>
+
+        const btn = document.getElementById('generateBtn');
+        btn.classList.add('loading');
+
+        try {
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bullet_points, tone: selectedTone })
+            });
+
+            const data = await response.json();
+            const formatted = data.email
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            document.getElementById('emptyState').classList.add('hidden');
+            const result = document.getElementById('result');
+            result.innerHTML = formatted;
+            result.classList.add('visible');
+            document.getElementById('copyBtn').classList.add('visible');
+        } catch (err) {
+            alert('Something went wrong. Please try again.');
+        } finally {
+            btn.classList.remove('loading');
+        }
+    }
+
+    function copyEmail() {
+        const text = document.getElementById('result').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById('copyBtn');
+            const label = document.getElementById('copyText');
+            btn.classList.add('copied');
+            label.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                label.textContent = 'Copy';
+            }, 2000);
+        });
+    }
+</script>
+
 </body>
 </html>
